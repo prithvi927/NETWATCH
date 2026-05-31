@@ -1,0 +1,87 @@
+import { useEffect, useRef } from "react"
+import createGlobe from "cobe"
+
+function Globe({ result }) {
+
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+
+    if (!canvasRef.current) return
+
+    let phi = 0
+
+    const width = canvasRef.current.offsetWidth
+
+    const globe = createGlobe(canvasRef.current, {
+      devicePixelRatio: 2,
+
+      width: width,
+      height: width,
+
+      phi: 0,
+      theta: 0.3,
+
+      dark: 1,
+
+      diffuse: 1.5,
+
+      mapSamples: 16000,
+      mapBrightness: 8,
+
+      baseColor: [0.08, 0.12, 0.18],
+      markerColor: [0, 1, 1],
+      glowColor: [0, 0.35, 0.7],
+
+      markerElevation: 0.02,
+
+      markers: result?.latitude && result?.longitude
+        ? [
+            {
+                location: [
+                    result.latitude,
+                    result.longitude
+                ],
+                size: 0.06
+                }
+            ]
+        : [],
+
+      opacity: 0.7
+    })
+
+    let animationId
+
+    function animate() {
+
+      phi += 0.003
+
+      globe.update({
+        phi
+      })
+
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      cancelAnimationFrame(animationId)
+      globe.destroy()
+    }
+
+  }, [result])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        width: "600px",
+        height: "600px",
+        maxWidth: "100%"
+      }}
+    />
+  )
+}
+
+export default Globe
