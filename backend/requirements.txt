@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+pydantic
+geoip2
+httpx
