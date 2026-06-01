@@ -1,7 +1,7 @@
 export async function analyzeWebsite(url) {
 
   const response = await fetch(
-    "http://127.0.0.1:8000/analyze",
+    "https://netwatch-backend.vercel.app/analyze",
     {
       method: "POST",
       headers: {
