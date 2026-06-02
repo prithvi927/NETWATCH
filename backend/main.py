@@ -40,6 +40,8 @@ def analyze(data: WebsiteRequest):
 
     domain = parsed_url.netloc.lower()
 
+    start_time = time.time()
+    
     try:
         ip_address = socket.gethostbyname(domain)
 
@@ -60,7 +62,7 @@ def analyze(data: WebsiteRequest):
             detail="Unable to determine server location for this target."
     )
 
-    start_time = time.time()
+
 
     try:
         with httpx.stream("GET", url, timeout=10) as r:
@@ -74,25 +76,25 @@ def analyze(data: WebsiteRequest):
             detail=repr(e)
         )
     
-    ttfb_ms = round((time.time() - start_time) * 1000, 2)
+    response_time_ms = round((time.time() - start_time) * 1000, 2)
 
-    if ttfb_ms < 200:
+    if response_time_ms < 200:
         grade = "A+"
         status = "Excellent"
 
-    elif ttfb_ms < 500:
+    elif response_time_ms < 500:
         grade = "A"
         status = "Very Fast"
 
-    elif ttfb_ms < 800:
+    elif response_time_ms < 800:
         grade = "B"
         status = "Good"
 
-    elif ttfb_ms < 1200:
+    elif response_time_ms < 1200:
         grade = "C"
         status = "Fair"
 
-    elif ttfb_ms < 2000:
+    elif response_time_ms < 2000:
         grade = "D"
         status = "Slow"
 
@@ -107,7 +109,7 @@ def analyze(data: WebsiteRequest):
         "city": response.city.name,
         "latitude": response.location.latitude,
         "longitude": response.location.longitude,
-        "response_time_ms": ttfb_ms,
+        "response_time_ms": response_time_ms,
         "grade": grade,
         "status": status
     }
