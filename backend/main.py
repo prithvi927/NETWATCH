@@ -40,7 +40,7 @@ def analyze(data: WebsiteRequest):
 
     domain = parsed_url.netloc.lower()
 
-    start_time = time.time()
+
     
     try:
         ip_address = socket.gethostbyname(domain)
@@ -62,7 +62,7 @@ def analyze(data: WebsiteRequest):
             detail="Unable to determine server location for this target."
     )
 
-
+    start_time = time.time()
 
     try:
         with httpx.stream("GET", url, timeout=10) as r:
