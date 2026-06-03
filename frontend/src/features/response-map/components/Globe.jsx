@@ -36,7 +36,7 @@ function Globe({ result }) {
       glowColor: [0, 0.35, 0.7],
       arcColor: [0, 1, 1],
       arcWidth: 0.8,
-      arcHeight: 0.25,
+      arcHeight: 1,
       markerElevation: 0.02,
 
       markers: result?.latitude && result?.longitude
