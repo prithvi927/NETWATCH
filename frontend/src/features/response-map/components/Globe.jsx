@@ -1,7 +1,10 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import createGlobe from "cobe"
 
+
 function Globe({ result }) {
+
+  const [showNetwatchMarker, setShowNetwatchMarker] = useState(false)
 
   const canvasRef = useRef(null)
 
@@ -40,12 +43,18 @@ function Globe({ result }) {
       arcHeight: 0.5,
       markerElevation: 0.02,
 
-      markers: result?.latitude && result?.longitude
+    markers: result?.latitude && result?.longitude
   ? [
-      {
-        location: NETWATCH_LOCATION,
-        size: 0.05
-      },
+
+      ...(showNetwatchMarker
+        ? [
+            {
+              location: NETWATCH_LOCATION,
+              size: 0.05
+            }
+          ]
+        : []),
+
       {
         location: [
           result.latitude,
@@ -53,8 +62,10 @@ function Globe({ result }) {
         ],
         size: 0.06
       }
+
     ]
   : [],
+
 
   arcs: result?.latitude && result?.longitude
   ? [
@@ -70,6 +81,10 @@ function Globe({ result }) {
 
       opacity: 0.7
     })
+
+    setTimeout(() => {
+  setShowNetwatchMarker(true)
+}, 2500)
 
     let animationId
 
