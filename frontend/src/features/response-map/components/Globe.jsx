@@ -82,23 +82,22 @@ function Globe({ result }) {
 
   function animate() {
 
-    if (shouldRotate) {
+  if (shouldRotate && Math.abs(targetPhi - phi) > 0.01) {
 
-      if (Math.abs(targetPhi - phi) > 0.01) {
-        phi += (targetPhi - phi) * 0.05
-      } else {
-        phi += 0.003
-      }
+    phi += (targetPhi - phi) * 0.05
 
-    }
+  } else {
 
-    globe.update({
-      phi
-    })
+    phi += 0.003
 
-    animationId = requestAnimationFrame(animate)
   }
 
+  globe.update({
+    phi
+  })
+
+  animationId = requestAnimationFrame(animate)
+}
 
   animate()
 
