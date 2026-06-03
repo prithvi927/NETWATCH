@@ -10,6 +10,7 @@ function Globe({ result }) {
     if (!canvasRef.current) return
 
     let phi = 0
+    let targetPhi = 1.7
 
     const width = canvasRef.current.offsetWidth
 
@@ -74,14 +75,14 @@ function Globe({ result }) {
 
     function animate() {
 
-      phi += 0.003
+  phi += (targetPhi - phi) * 0.05
 
-      globe.update({
-        phi
-      })
+  globe.update({
+    phi
+  })
 
-      animationId = requestAnimationFrame(animate)
-    }
+  animationId = requestAnimationFrame(animate)
+}
 
     animate()
 
