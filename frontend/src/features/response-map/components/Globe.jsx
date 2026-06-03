@@ -96,9 +96,11 @@ function Globe({ result }) {
 
   } else {
 
-    phi += 0.003
+  phi = targetPhi
+  targetPhi = Infinity
+  shouldRotate = false
 
-  }
+}
 
   globe.update({
     phi
