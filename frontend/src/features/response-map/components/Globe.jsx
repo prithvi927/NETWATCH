@@ -82,9 +82,17 @@ function Globe({ result }) {
 
   function animate() {
 
-  if (shouldRotate && Math.abs(targetPhi - phi) > 0.01) {
+  if (shouldRotate) {
 
-    phi += (targetPhi - phi) * 0.05
+    if (Math.abs(targetPhi - phi) > 0.01) {
+
+      phi += (targetPhi - phi) * 0.05
+
+    } else {
+
+      shouldRotate = false
+
+    }
 
   } else {
 
