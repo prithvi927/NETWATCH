@@ -94,12 +94,16 @@ function Globe({ result }) {
   animationId = requestAnimationFrame(animate)
 }
 
-    animate()
 
-    return () => {
-      cancelAnimationFrame(animationId)
-      globe.destroy()
-    }
+  const startAnimationTimeout = setTimeout(() => {
+  animate()
+}, 3000)
+
+  return () => {
+  clearTimeout(startAnimationTimeout)
+  cancelAnimationFrame(animationId)
+  globe.destroy()
+}
 
   }, [result])
 
