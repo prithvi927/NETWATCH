@@ -13,6 +13,8 @@ function Globe({ result }) {
 
     const width = canvasRef.current.offsetWidth
 
+    const NETWATCH_LOCATION = [37.751, -97.822]
+
     const globe = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
 
@@ -32,20 +34,38 @@ function Globe({ result }) {
       baseColor: [0.08, 0.12, 0.18],
       markerColor: [0, 1, 1],
       glowColor: [0, 0.35, 0.7],
-
+      arcColor: [0, 1, 1],
+      arcWidth: 0.8,
+      arcHeight: 0.25,
       markerElevation: 0.02,
 
       markers: result?.latitude && result?.longitude
-        ? [
-            {
-                location: [
-                    result.latitude,
-                    result.longitude
-                ],
-                size: 0.06
-                }
-            ]
-        : [],
+  ? [
+      {
+        location: NETWATCH_LOCATION,
+        size: 0.05
+      },
+      {
+        location: [
+          result.latitude,
+          result.longitude
+        ],
+        size: 0.06
+      }
+    ]
+  : [],
+
+  arcs: result?.latitude && result?.longitude
+  ? [
+      {
+        from: NETWATCH_LOCATION,
+        to: [
+          result.latitude,
+          result.longitude
+        ]
+      }
+    ]
+  : [],
 
       opacity: 0.7
     })
