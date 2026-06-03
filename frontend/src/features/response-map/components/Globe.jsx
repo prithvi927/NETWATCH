@@ -13,7 +13,8 @@ function Globe({ result }) {
     if (!canvasRef.current) return
 
     let phi = 0
-    let targetPhi = 3.5
+    let targetPhi = 0
+    let shouldRotate = false
 
     const width = canvasRef.current.offsetWidth
 
@@ -77,26 +78,33 @@ function Globe({ result }) {
 
   
 
-    let animationId
+  let animationId
 
-    function animate() {
+  function animate() {
 
-  if (Math.abs(targetPhi - phi) > 0.01) {
-    phi += (targetPhi - phi) * 0.05
-  } else {
-    phi += 0.003
+    if (shouldRotate) {
+
+      if (Math.abs(targetPhi - phi) > 0.01) {
+        phi += (targetPhi - phi) * 0.05
+      } else {
+        phi += 0.003
+      }
+
+    }
+
+    globe.update({
+      phi
+    })
+
+    animationId = requestAnimationFrame(animate)
   }
 
-  globe.update({
-    phi
-  })
 
-  animationId = requestAnimationFrame(animate)
-}
-
-
-  const startAnimationTimeout = setTimeout(() => {
   animate()
+
+const startAnimationTimeout = setTimeout(() => {
+  targetPhi = 3.5
+  shouldRotate = true
 }, 3000)
 
   return () => {
