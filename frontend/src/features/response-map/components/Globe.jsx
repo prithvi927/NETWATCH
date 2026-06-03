@@ -10,7 +10,7 @@ function Globe({ result }) {
     if (!canvasRef.current) return
 
     let phi = 0
-    let targetPhi = 2.2
+    let targetPhi = 3.5
 
     const width = canvasRef.current.offsetWidth
 
