@@ -100,7 +100,8 @@ function Globe({ result }) {
         arcTimerStarted = true
 
         setTimeout(() => {
-            setShowArc(true)
+          console.log("ARC TIMER FIRED")
+          setShowArc(true)
         }, 4000)
 
       }
