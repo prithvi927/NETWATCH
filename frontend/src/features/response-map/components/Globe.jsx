@@ -112,7 +112,7 @@ function Globe({ result }) {
 
 const phase1 = setTimeout(() => {
 
-  targetPhi = 3.5
+  targetPhi = 0
   shouldRotate = true
 
 }, 3000)
