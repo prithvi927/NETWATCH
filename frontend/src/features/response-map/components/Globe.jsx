@@ -11,9 +11,11 @@ function Globe({ result }) {
 
     if (!canvasRef.current) return
 
-    let phi = 0
+    let phi = 1
     let targetPhi = 0
     let shouldRotate = false
+    let showArc = false
+    let arcTimerStarted = false
 
     const width = canvasRef.current.offsetWidth
 
@@ -25,7 +27,7 @@ function Globe({ result }) {
       width: width,
       height: width,
 
-      phi: 0,
+      phi: 1,
       theta: 0.3,
 
       dark: 1,
@@ -60,17 +62,7 @@ function Globe({ result }) {
   : [],
 
 
-    arcs: result?.latitude && result?.longitude
-  ? [
-      {
-        from: NETWATCH_LOCATION,
-        to: [
-          result.latitude,
-          result.longitude
-        ]
-      }
-    ]
-  : [],
+    arcs: [],
 
     opacity: 0.7
 
@@ -101,7 +93,19 @@ function Globe({ result }) {
   }
 
   globe.update({
-  phi
+  phi,
+
+  arcs: showArc
+    ? [
+        {
+          from: NETWATCH_LOCATION,
+          to: [
+            result.latitude,
+            result.longitude
+          ]
+        }
+      ]
+    : []
 })
 
   animationId = requestAnimationFrame(animate)
@@ -109,12 +113,19 @@ function Globe({ result }) {
 
   animate()
 
+const arcPhase = setTimeout(() => {
+
+  showArc = true
+
+}, 4000)
+
+
 const phase1 = setTimeout(() => {
 
   targetPhi = 3.5
   shouldRotate = true
 
-}, 3000)
+}, 6000)
 
 
   return () => {
