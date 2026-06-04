@@ -5,7 +5,7 @@ import createGlobe from "cobe"
 function Globe({ result }) {
 
   const [showArc, setShowArc] = useState(false)
-
+  console.log("showArc =", showArc)
 
 
   const canvasRef = useRef(null)
@@ -101,6 +101,7 @@ function Globe({ result }) {
 
         setTimeout(() => {
           console.log("ARC TIMER FIRED")
+          console.log("SHOW ARC TRUE")
           setShowArc(true)
         }, 4000)
 
