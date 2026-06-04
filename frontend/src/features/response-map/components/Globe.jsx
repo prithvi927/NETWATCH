@@ -65,18 +65,10 @@ function Globe({ result }) {
   : [],
 
 
-  arcs: showArc
-  ? [
-      {
-        from: NETWATCH_LOCATION,
-        to: [
-          result.latitude,
-          result.longitude
-        ]
-      }
-    ]
-  : [],
-      opacity: 0.7
+    arcs: [],
+
+    opacity: 0.7
+    
     })
 
   
@@ -116,7 +108,19 @@ function Globe({ result }) {
   }
 
   globe.update({
-    phi
+    phi,
+
+    arcs: showArc
+    ? [
+        {
+          from: NETWATCH_LOCATION,
+          to: [
+            result.latitude,
+            result.longitude
+          ]
+        }
+      ]
+    : []
   })
 
   animationId = requestAnimationFrame(animate)
