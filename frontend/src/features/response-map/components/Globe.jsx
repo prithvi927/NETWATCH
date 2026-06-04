@@ -1,11 +1,8 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import createGlobe from "cobe"
 
 
 function Globe({ result }) {
-
-  const [showArc, setShowArc] = useState(false)
-  console.log("showArc =", showArc)
 
 
   const canvasRef = useRef(null)
@@ -17,8 +14,6 @@ function Globe({ result }) {
     let phi = 0
     let targetPhi = 0
     let shouldRotate = false
-    let arcTimerStarted = false
-    let phase = "idle"
 
     const width = canvasRef.current.offsetWidth
 
@@ -65,10 +60,20 @@ function Globe({ result }) {
   : [],
 
 
-    arcs: [],
+    arcs: result?.latitude && result?.longitude
+  ? [
+      {
+        from: NETWATCH_LOCATION,
+        to: [
+          result.latitude,
+          result.longitude
+        ]
+      }
+    ]
+  : [],
 
     opacity: 0.7
-    
+
     })
 
   
@@ -87,18 +92,6 @@ function Globe({ result }) {
 
       shouldRotate = false
 
-      if (!arcTimerStarted) {
-
-        arcTimerStarted = true
-
-        setTimeout(() => {
-          console.log("ARC TIMER FIRED")
-          console.log("SHOW ARC TRUE")
-          setShowArc(true)
-        }, 4000)
-
-      }
-
     }
 
   } else {
@@ -108,20 +101,8 @@ function Globe({ result }) {
   }
 
   globe.update({
-    phi,
-
-    arcs: showArc
-    ? [
-        {
-          from: NETWATCH_LOCATION,
-          to: [
-            result.latitude,
-            result.longitude
-          ]
-        }
-      ]
-    : []
-  })
+  phi
+})
 
   animationId = requestAnimationFrame(animate)
 }
