@@ -15,6 +15,7 @@ function Globe({ result }) {
     let phi = 0
     let targetPhi = 0
     let shouldRotate = false
+    let phase = "idle"
 
     const width = canvasRef.current.offsetWidth
 
@@ -109,13 +110,16 @@ function Globe({ result }) {
 
   animate()
 
-const startAnimationTimeout = setTimeout(() => {
+const phase1 = setTimeout(() => {
+
   targetPhi = 3.5
   shouldRotate = true
+
 }, 3000)
 
+
   return () => {
-  clearTimeout(startAnimationTimeout)
+  clearTimeout(phase1)
   cancelAnimationFrame(animationId)
   globe.destroy()
 }
