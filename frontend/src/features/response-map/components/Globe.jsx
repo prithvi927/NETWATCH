@@ -15,15 +15,19 @@ function Globe({ result }) {
     console.log("EFFECT START")
 
     if (!canvasRef.current) return
+    
+    canvasRef.current.style.transform = "scale(1)"
 
     let phi = 4.7
     console.log("PHI INIT", phi)
+    let zoom = 1
+    let targetZoom = 1
     let targetPhi = 0
-    let usaTargetPhi = 0.2
+    // let usaTargetPhi = 0.2
     let shouldRotate = false
     let showArc = false
     let showMarker = false
-    let arcTimerStarted = false
+    // let arcTimerStarted = false
 
     const width = canvasRef.current.offsetWidth
 
@@ -102,6 +106,15 @@ function Globe({ result }) {
 
   }
 
+
+  if (Math.abs(targetZoom - zoom) > 0.01) {
+
+  zoom += (targetZoom - zoom) * 0.05
+
+  canvasRef.current.style.transform = `scale(${zoom})`
+
+  }
+
   globe.update({
   phi,
   
@@ -154,6 +167,13 @@ const usaPhase = setTimeout(() => {
 
 }, 2000)
 
+
+const usaZoomPhase = setTimeout(() => {
+
+  targetZoom = 1.35
+
+}, 2000)
+
 const markerPhase = setTimeout(() => {
 
   showMarker = true
@@ -173,26 +193,37 @@ const indiaPhase = setTimeout(() => {
 
 }, 6000)
 
+const indiaZoomPhase = setTimeout(() => {
+
+  targetZoom = 1.7
+
+}, 6000)
+
 return () => {
   clearTimeout(usaPhase)
   clearTimeout(arcPhase)
   clearTimeout(indiaPhase)
+  clearTimeout(markerPhase)
+  clearTimeout(usaZoomPhase)
+  clearTimeout(indiaZoomPhase)
   cancelAnimationFrame(animationId)
+
   console.log("EFFECT CLEANUP")
   globe.destroy()
 }
   }, [result])
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        width: "600px",
-        height: "600px",
-        maxWidth: "100%"
-      }}
-    />
-  )
+  <canvas
+    ref={canvasRef}
+    style={{
+      width: "600px",
+      height: "600px",
+      maxWidth: "100%",
+      transformOrigin: "center center"
+    }}
+  />
+)
 }
 
 export default Globe
