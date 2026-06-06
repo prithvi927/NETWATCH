@@ -4,17 +4,25 @@ import createGlobe from "cobe"
 
 function Globe({ result }) {
 
+  console.log("RESULT:", JSON.stringify(result))
 
   const canvasRef = useRef(null)
 
   useEffect(() => {
 
+    if (!result) return
+
+    console.log("EFFECT START")
+
     if (!canvasRef.current) return
 
-    let phi = 1
+    let phi = 4.7
+    console.log("PHI INIT", phi)
     let targetPhi = 0
+    let usaTargetPhi = 0.2
     let shouldRotate = false
     let showArc = false
+    let showMarker = false
     let arcTimerStarted = false
 
     const width = canvasRef.current.offsetWidth
@@ -27,7 +35,7 @@ function Globe({ result }) {
       width: width,
       height: width,
 
-      phi: 1,
+      phi: 4.7,
       theta: 0.3,
 
       dark: 1,
@@ -45,22 +53,24 @@ function Globe({ result }) {
       arcHeight: 0.5,
       markerElevation: 0.02,
 
-    markers: result?.latitude && result?.longitude
-  ? [
-      {
-        location: NETWATCH_LOCATION,
-        size: 0.05
-      },
-      {
-        location: [
-          result.latitude,
-          result.longitude
-        ],
-        size: 0.06
-      }
-    ]
-  : [],
 
+
+    markers:
+      showMarker && result?.latitude && result?.longitude
+        ? [
+            {
+              location: NETWATCH_LOCATION,
+              size: 0.05
+            },
+            {
+              location: [
+                result.latitude,
+                result.longitude
+              ],
+              size: 0.06
+            }
+          ]
+       : [],
 
     arcs: [],
 
@@ -94,6 +104,24 @@ function Globe({ result }) {
 
   globe.update({
   phi,
+  
+  markers:
+    showMarker && result?.latitude && result?.longitude
+      ? [
+          {
+            location: NETWATCH_LOCATION,
+            size: 0.05
+          },
+          {
+            location: [
+              result.latitude,
+              result.longitude
+            ],
+            size: 0.06
+          }
+        ]
+      : [],
+
 
   arcs: showArc
     ? [
@@ -108,10 +136,29 @@ function Globe({ result }) {
     : []
 })
 
-  animationId = requestAnimationFrame(animate)
+animationId = requestAnimationFrame(animate)
+
 }
 
-  animate()
+animate()
+
+
+const usaPhase = setTimeout(() => {
+
+  console.log("USA PHASE START")
+  console.log("PHI DURING USA", phi)
+
+  targetPhi = 0.2
+  shouldRotate = true
+
+
+}, 2000)
+
+const markerPhase = setTimeout(() => {
+
+  showMarker = true
+
+}, 3000)
 
 const arcPhase = setTimeout(() => {
 
@@ -119,21 +166,21 @@ const arcPhase = setTimeout(() => {
 
 }, 4000)
 
-
-const phase1 = setTimeout(() => {
+const indiaPhase = setTimeout(() => {
 
   targetPhi = 3.5
   shouldRotate = true
 
 }, 6000)
 
-
-  return () => {
-  clearTimeout(phase1)
+return () => {
+  clearTimeout(usaPhase)
+  clearTimeout(arcPhase)
+  clearTimeout(indiaPhase)
   cancelAnimationFrame(animationId)
+  console.log("EFFECT CLEANUP")
   globe.destroy()
 }
-
   }, [result])
 
   return (
