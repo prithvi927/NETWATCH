@@ -170,7 +170,7 @@ const usaPhase = setTimeout(() => {
 
 const usaZoomPhase = setTimeout(() => {
 
-  targetZoom = 1.35
+  targetZoom = 2.5
 
 }, 2000)
 
@@ -186,26 +186,48 @@ const arcPhase = setTimeout(() => {
 
 }, 4000)
 
-const indiaPhase = setTimeout(() => {
 
-  targetPhi = 3.5
+const usaZoomOutPhase = setTimeout(() => {
+
+  targetZoom = 1
+
+}, 5000)
+
+const targetwebPhase = setTimeout(() => {
+
+  const longitude = result.longitude
+
+  targetPhi =  -0.2 + ((-longitude - 77.49) * Math.PI) / 180
+
+
+  console.log("LONGITUDE:", longitude)
+  console.log("TARGET PHI:", targetPhi)
+
   shouldRotate = true
 
 }, 6000)
 
-const indiaZoomPhase = setTimeout(() => {
 
-  targetZoom = 1.7
+const targetwebZoomPhase = setTimeout(() => {
+
+  targetZoom = 2.5
 
 }, 6000)
+
+const targetwebZoomOutPhase = setTimeout(() => {
+
+  targetZoom = 1
+
+}, 7000)
+
 
 return () => {
   clearTimeout(usaPhase)
   clearTimeout(arcPhase)
-  clearTimeout(indiaPhase)
+  clearTimeout(targetwebPhase)
   clearTimeout(markerPhase)
   clearTimeout(usaZoomPhase)
-  clearTimeout(indiaZoomPhase)
+  clearTimeout(targetwebZoomPhase)
   cancelAnimationFrame(animationId)
 
   console.log("EFFECT CLEANUP")
