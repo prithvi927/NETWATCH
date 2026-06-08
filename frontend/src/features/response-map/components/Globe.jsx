@@ -28,10 +28,18 @@ function Globe({ result }) {
     let showArc = false
     let showMarker = false
     // let arcTimerStarted = false
+    let journeyProgress = 0
+    let journeyActive = false
+
+
+    let startPhi = 0
 
     const width = canvasRef.current.offsetWidth
 
     const NETWATCH_LOCATION = [37.751, -97.822]
+
+    let currentArcLat = NETWATCH_LOCATION[0]
+    let currentArcLon = NETWATCH_LOCATION[1]
 
     const globe = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
@@ -115,6 +123,31 @@ function Globe({ result }) {
 
   }
 
+
+  if (journeyActive) {
+
+    journeyProgress += 0.01
+
+  if (journeyProgress >= 1) {
+    journeyProgress = 1
+    journeyActive = false
+  }
+
+  phi =
+    startPhi +
+    (targetPhi - startPhi) * journeyProgress
+
+  currentArcLat =
+    NETWATCH_LOCATION[0] +
+    (result.latitude - NETWATCH_LOCATION[0]) *
+      journeyProgress
+
+  currentArcLon =
+    NETWATCH_LOCATION[1] +
+    (result.longitude - NETWATCH_LOCATION[1]) *
+      journeyProgress
+}
+
   globe.update({
   phi,
   
@@ -137,16 +170,16 @@ function Globe({ result }) {
 
 
   arcs: showArc
-    ? [
-        {
-          from: NETWATCH_LOCATION,
-          to: [
-            result.latitude,
-            result.longitude
-          ]
-        }
-      ]
-    : []
+  ? [
+      {
+        from: NETWATCH_LOCATION,
+        to: [
+          currentArcLat,
+          currentArcLon
+        ]
+      }
+    ]
+  : []
 })
 
 animationId = requestAnimationFrame(animate)
@@ -180,11 +213,11 @@ const markerPhase = setTimeout(() => {
 
 }, 3000)
 
-const arcPhase = setTimeout(() => {
+// const arcPhase = setTimeout(() => {
 
-  showArc = true
+//   showArc = true
 
-}, 4000)
+// }, 4000)
 
 
 const usaZoomOutPhase = setTimeout(() => {
@@ -195,15 +228,16 @@ const usaZoomOutPhase = setTimeout(() => {
 
 const targetwebPhase = setTimeout(() => {
 
+  showArc = true
+
   const longitude = result.longitude
 
-  targetPhi =  -0.2 + ((-longitude - 77.49) * Math.PI) / 180
+  targetPhi = -0.2 + ((-longitude - 77.49) * Math.PI) / 180
 
+  startPhi = phi
 
-  console.log("LONGITUDE:", longitude)
-  console.log("TARGET PHI:", targetPhi)
-
-  shouldRotate = true
+  journeyProgress = 0
+  journeyActive = true
 
 }, 6000)
 
@@ -212,18 +246,18 @@ const targetwebZoomPhase = setTimeout(() => {
 
   targetZoom = 2.5
 
-}, 6000)
+}, 7000)
 
 const targetwebZoomOutPhase = setTimeout(() => {
 
   targetZoom = 1
 
-}, 7000)
+}, 8000)
 
 
 return () => {
   clearTimeout(usaPhase)
-  clearTimeout(arcPhase)
+  // clearTimeout(arcPhase)
   clearTimeout(targetwebPhase)
   clearTimeout(markerPhase)
   clearTimeout(usaZoomPhase)
