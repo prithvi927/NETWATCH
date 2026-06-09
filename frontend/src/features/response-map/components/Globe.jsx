@@ -26,10 +26,14 @@ function Globe({ result }) {
     // let usaTargetPhi = 0.2
     let shouldRotate = false
     let showArc = false
-    let showMarker = false
+    let showUsaMarker = false
+    let showTargetMarker = false
     // let arcTimerStarted = false
     let journeyProgress = 0
     let journeyActive = false
+
+    let targetZoomTriggered = false
+    let targetZoomOutTimeout = null
 
 
     let startPhi = 0
@@ -67,22 +71,30 @@ function Globe({ result }) {
 
 
 
-    markers:
-      showMarker && result?.latitude && result?.longitude
+    markers: [
+      ...(showUsaMarker
         ? [
             {
               location: NETWATCH_LOCATION,
               size: 0.05
-            },
-            {
-              location: [
-                result.latitude,
-                result.longitude
-              ],
-              size: 0.06
             }
           ]
-       : [],
+        : []),
+
+      ...(showTargetMarker &&
+      result?.latitude &&
+      result?.longitude
+        ? [
+            {
+              location: [
+              result.latitude,
+              result.longitude
+            ],
+            size: 0.06
+            }
+          ]
+        : [])
+    ],
 
     arcs: [],
 
@@ -129,10 +141,27 @@ function Globe({ result }) {
     journeyProgress += 0.01
 
   if (journeyProgress >= 1) {
-    journeyProgress = 1
-    journeyActive = false
+
+  journeyProgress = 1
+  journeyActive = false
+
+  showTargetMarker = true
+
+  if (!targetZoomTriggered) {
+
+    targetZoomTriggered = true
+
+    targetZoom = 2.5
+
+    targetZoomOutTimeout = setTimeout(() => {
+
+      targetZoom = 1
+
+    }, 1000)
+
   }
 
+}
   phi =
     startPhi +
     (targetPhi - startPhi) * journeyProgress
@@ -151,22 +180,30 @@ function Globe({ result }) {
   globe.update({
   phi,
   
-  markers:
-    showMarker && result?.latitude && result?.longitude
-      ? [
-          {
-            location: NETWATCH_LOCATION,
-            size: 0.05
-          },
-          {
-            location: [
-              result.latitude,
-              result.longitude
-            ],
-            size: 0.06
-          }
-        ]
-      : [],
+  markers: [
+      ...(showUsaMarker
+        ? [
+            {
+              location: NETWATCH_LOCATION,
+              size: 0.05
+            }
+          ]
+        : []),
+
+        ...(showTargetMarker &&
+        result?.latitude &&
+        result?.longitude
+          ? [
+              {
+                  location: [
+                  result.latitude,
+                  result.longitude
+                ],
+                size: 0.06
+              }
+            ]
+          : [])
+        ],
 
 
   arcs: showArc
@@ -209,7 +246,7 @@ const usaZoomPhase = setTimeout(() => {
 
 const markerPhase = setTimeout(() => {
 
-  showMarker = true
+  showUsaMarker = true
 
 }, 3000)
 
@@ -242,17 +279,17 @@ const targetwebPhase = setTimeout(() => {
 }, 6000)
 
 
-const targetwebZoomPhase = setTimeout(() => {
+// const targetwebZoomPhase = setTimeout(() => {
 
-  targetZoom = 2.5
+//   targetZoom = 2.5
 
-}, 7000)
+// }, 7000)
 
-const targetwebZoomOutPhase = setTimeout(() => {
+// const targetwebZoomOutPhase = setTimeout(() => {
 
-  targetZoom = 1
+//   targetZoom = 1
 
-}, 8000)
+// }, 8000)
 
 
 return () => {
@@ -261,7 +298,8 @@ return () => {
   clearTimeout(targetwebPhase)
   clearTimeout(markerPhase)
   clearTimeout(usaZoomPhase)
-  clearTimeout(targetwebZoomPhase)
+  clearTimeout(usaZoomOutPhase)
+  clearTimeout(targetZoomOutTimeout)
   cancelAnimationFrame(animationId)
 
   console.log("EFFECT CLEANUP")
