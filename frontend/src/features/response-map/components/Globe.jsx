@@ -15,6 +15,7 @@ function Globe({ result }) {
   if (!globeRef.current) return
 
   const globe = GlobeGL()(globeRef.current)
+  // globe.camera().position.z = 250
   globe.controls().autoRotate = true
   globe.controls().autoRotateSpeed = 1.2
 
@@ -22,14 +23,14 @@ function Globe({ result }) {
 
   globe.showAtmosphere(true)
 
-  globe.atmosphereColor("#2563eb")
-  globe.atmosphereAltitude(0.18)
+  globe.atmosphereColor("#0088ff")
+  globe.atmosphereAltitude(0.12)
 
   const material = globe.globeMaterial()
 
-  material.color.set("#0b1220")
-  material.emissive.set("#071426")
-  material.emissiveIntensity = 0.4
+  material.color.set("#03060b")
+  material.emissive.set("#001122")
+  material.emissiveIntensity = 0.15
 
   const landPolygons =
   topojson.feature(
@@ -40,8 +41,8 @@ function Globe({ result }) {
   globe
     .hexPolygonsData(landPolygons)
     .hexPolygonResolution(4)
-    .hexPolygonMargin(0.08)
-    .hexPolygonColor(() => "#5b8cff")
+    .hexPolygonMargin(0.22)
+    .hexPolygonColor(() => "#6fb6ff")
 
 }, [])
 
@@ -51,7 +52,7 @@ function Globe({ result }) {
     style={{
       width: "600px",
       height: "600px",
-      background: "#030712"
+      background: "#000000"
     }}
   />
 )
