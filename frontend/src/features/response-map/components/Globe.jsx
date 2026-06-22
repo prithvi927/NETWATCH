@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import GlobeGL from "globe.gl"
-// import * as topojson from "topojson-client"
-// import countries from "world-atlas/countries-110m.json"
+import * as topojson from "topojson-client"
+import countries from "world-atlas/countries-110m.json"
 
 
 function Globe({ result }) {
@@ -50,9 +50,7 @@ let targetZoomTriggered = false
   globe.controls().autoRotate = true
   globe.controls().autoRotateSpeed = 1.2
 
-  globe.globeImageUrl(
-  "//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-)
+  globe.globeImageUrl(null)
 
   globe.showAtmosphere(true)
 
@@ -61,18 +59,27 @@ let targetZoomTriggered = false
 
   const material = globe.globeMaterial()
 
-  material.color.set("#03060b")
-  material.emissive.set("#001122")
-  material.emissiveIntensity = 0.15
+  material.color.set("#02060d")
+  material.emissive.set("#061a3a")
+  material.emissiveIntensity = 0.25
+
+  const landPolygons =
+  topojson.feature(
+    countries,
+    countries.objects.countries
+  ).features
 
 
-  // globe.globeImageUrl("/earth-dark.jpg")
-  // const landPolygons =
-  // topojson.feature(
-  //   countries,
-  //   countries.objects.countries
-  // ).features
+  globe
+  .polygonsData(landPolygons)
 
+  .polygonCapColor(() => "#143d82")
+
+  .polygonSideColor(() => "#0a244d")
+
+  .polygonStrokeColor(() => "#2d7ce8")
+
+  .polygonAltitude(0.003)
 
 
   // // globe.hexPolygonsData([])
