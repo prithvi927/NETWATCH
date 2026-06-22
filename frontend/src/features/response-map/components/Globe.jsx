@@ -18,6 +18,14 @@ function Globe({ result }) {
   if (!globeRef.current || !result) return
 
   const globe = GlobeGL()(globeRef.current)
+
+  globe
+  .pointLat(d => d.lat)
+  .pointLng(d => d.lng)
+  .pointAltitude(0.01)
+  .pointRadius(0.15)
+  .pointColor(() => "#00ffff")
+
   console.log("GLOBE CREATED")
 
   globe.pointOfView(
@@ -109,8 +117,20 @@ function animate() {
 
       journeyActive = false
 
-      // showTargetMarker = true
+      showTargetMarker = true
       
+      globe.pointsData([
+        {
+          lat: NETWATCH_LOCATION.lat,
+          lng: NETWATCH_LOCATION.lng,
+          size: 0.1
+        },
+        {
+        lat: result.latitude,
+        lng: result.longitude,
+        size: 0.1
+      }
+    ])
       console.log("TARGET FOCUS START")
       globe.pointOfView(
         {
@@ -154,33 +174,33 @@ function animate() {
   }
 
 
-const markers = []
+// const markers = []
 
-if (showUsaMarker) {
+// if (showUsaMarker) {
 
-  markers.push({
-    lat: NETWATCH_LOCATION.lat,
-    lng: NETWATCH_LOCATION.lng,
-    size: 0.5
-  })
-}
+//   markers.push({
+//     lat: NETWATCH_LOCATION.lat,
+//     lng: NETWATCH_LOCATION.lng,
+//     size: 1
+//   })
+// }
 
-if (showTargetMarker) {
+// if (showTargetMarker) {
 
-  markers.push({
-    lat: result.latitude,
-    lng: result.longitude,
-    size: 0.5
-  })
-}
+//   markers.push({
+//     lat: result.latitude,
+//     lng: result.longitude,
+//     size: 1
+//   })
+// }
 
-globe
-  .pointsData(markers)
-  .pointLat(d => d.lat)
-  .pointLng(d => d.lng)
-  .pointAltitude(0.02)
-  .pointRadius(d => d.size)
-  .pointColor(() => "#00ffff")
+// // globe
+// //   .pointsData(markers)
+// //   .pointLat(d => d.lat)
+// //   .pointLng(d => d.lng)
+// //   .pointAltitude(0.08)
+// //   .pointRadius(d => d.size)
+// //   .pointColor(() => "#00ffff")
 
 
   const arcs = []
@@ -235,6 +255,15 @@ const usaFocus = setTimeout(() => {
 const usaPhase = setTimeout(() => {
 
   showUsaMarker = true
+
+   globe.pointsData([
+    {
+      lat: NETWATCH_LOCATION.lat,
+      lng: NETWATCH_LOCATION.lng,
+      size: 1
+    }
+  ])
+
 
 }, 3000)
 
