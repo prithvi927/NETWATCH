@@ -19,12 +19,7 @@ function Globe({ result }) {
 
   const globe = GlobeGL()(globeRef.current)
 
-  globe
-  .pointLat(d => d.lat)
-  .pointLng(d => d.lng)
-  .pointAltitude(0.01)
-  .pointRadius(0.15)
-  .pointColor(() => "#00ffff")
+  
 
   console.log("GLOBE CREATED")
 
@@ -89,6 +84,13 @@ let targetZoomTriggered = false
 
   .polygonAltitude(0.003)
 
+  globe
+  .ringColor(() => "#00ffff")
+  .ringMaxRadius(2)
+  .ringPropagationSpeed(1)
+  .ringRepeatPeriod(1200)
+  .ringAltitude(0.01)
+
 
   // // globe.hexPolygonsData([])
   // // globe
@@ -97,7 +99,7 @@ let targetZoomTriggered = false
   // //   .hexPolygonMargin(0.22)
   // //   .hexPolygonColor(() => "#6fb6ff")
 
-  let animationId
+let animationId
 let targetZoomOutTimeout = null
 let rotationResumeTimeout = null
 function animate() {
@@ -119,18 +121,18 @@ function animate() {
 
       showTargetMarker = true
       
-      globe.pointsData([
+      globe.ringsData([
         {
           lat: NETWATCH_LOCATION.lat,
-          lng: NETWATCH_LOCATION.lng,
-          size: 0.1
+          lng: NETWATCH_LOCATION.lng
         },
         {
-        lat: result.latitude,
-        lng: result.longitude,
-        size: 0.1
-      }
-    ])
+          lat: result.latitude,
+          lng: result.longitude
+        }
+      ])
+
+
       console.log("TARGET FOCUS START")
       globe.pointOfView(
         {
@@ -256,13 +258,12 @@ const usaPhase = setTimeout(() => {
 
   showUsaMarker = true
 
-   globe.pointsData([
-    {
-      lat: NETWATCH_LOCATION.lat,
-      lng: NETWATCH_LOCATION.lng,
-      size: 1
-    }
-  ])
+   globe.ringsData([
+  {
+    lat: NETWATCH_LOCATION.lat,
+    lng: NETWATCH_LOCATION.lng
+  }
+])
 
 
 }, 3000)
