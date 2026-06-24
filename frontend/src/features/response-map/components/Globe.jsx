@@ -134,14 +134,14 @@ function animate() {
 
 
       console.log("TARGET FOCUS START")
-      globe.pointOfView(
-        {
-          lat: result.latitude,
-          lng: result.longitude,
-          altitude: 1.2
-        },
-        1500
-      )
+      // globe.pointOfView(
+      //   {
+      //     lat: result.latitude,
+      //     lng: result.longitude,
+      //     altitude: 1.2
+      //   },
+      //   1500
+      // )
 
 //       targetZoomOutTimeout = setTimeout(() => {
 
@@ -225,6 +225,8 @@ if (showArc) {
   })
 }
 
+
+console.count("ARC UPDATE")
 globe
   .arcsData(arcs)
   .arcColor(() => "#00ffff")
@@ -280,11 +282,20 @@ const usaZoomOut = setTimeout(() => {
     1500
   )
 
-}, 5000)
+}, 4000)
 
 const targetPhase = setTimeout(() => {
 
   showArc = true
+
+  globe.pointOfView(
+    {
+      lat: 20,
+      lng: result.longitude,
+      altitude: 2.5
+    },
+    5000
+  )
 
   journeyProgress = 0
 
@@ -297,7 +308,7 @@ rotationResumeTimeout = setTimeout(() => {
   globe.controls().autoRotate = true
   globe.controls().autoRotateSpeed = 1.2
 
-}, 10500)
+}, 12000)
  
 
 return () => {
