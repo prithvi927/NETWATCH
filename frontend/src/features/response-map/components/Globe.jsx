@@ -350,7 +350,35 @@ return () => {
   clearTimeout(rotationResumeTimeout)
 
   cancelAnimationFrame(animationId)
-}
+
+
+  // 2. Unbind data layers explicitly to drop geographic VRAM allocation
+      if (globe) {
+        if (globe.controls() && typeof globe.controls().dispose === "function") {
+          globe.controls().dispose()
+        }
+
+        globe
+          .polygonsData([])
+          .arcsData([])
+          .ringsData([])
+          .pointsData([])
+          .labelsData([])
+          .pathsData([])
+          .hexBinPointsData([])
+          .customLayerData([])
+
+        // 3. Command Three.js to destroy contexts, scenes, textures, & event listeners
+        if (typeof globe._destructor === "function") {
+          globe._destructor()
+        }
+      }
+
+      // 4. Force empty the DOM wrapper element to wipe residual canvas frames
+      if (globeRef.current) {
+        globeRef.current.innerHTML = ""
+      }
+    }
 
 }, [result])
 
