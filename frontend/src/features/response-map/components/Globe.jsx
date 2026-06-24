@@ -91,6 +91,11 @@ let targetZoomTriggered = false
   .ringRepeatPeriod(1200)
   .ringAltitude(0.01)
 
+  globe
+  .arcColor(() => "#00ffff")
+  .arcStroke(0.8)
+  .arcAltitude(0.25)
+
 
   // // globe.hexPolygonsData([])
   // // globe
@@ -117,10 +122,22 @@ function animate() {
 
       journeyProgress = 1
 
+      globe.arcsData([
+        {
+          startLat: NETWATCH_LOCATION.lat,
+          startLng: NETWATCH_LOCATION.lng,
+          endLat: result.latitude,
+          endLng: result.longitude
+        }
+      ])
+
       journeyActive = false
 
+      showArc = false
+
       showTargetMarker = true
-      
+
+
       globe.ringsData([
         {
           lat: NETWATCH_LOCATION.lat,
@@ -227,15 +244,18 @@ if (showArc) {
 
 
 console.count("ARC UPDATE")
-globe
-  .arcsData(arcs)
-  .arcColor(() => "#00ffff")
-  .arcStroke(0.8)
-  .arcAltitude(0.25)
+if (journeyActive || showArc) {
+  console.count("ARC UPDATE")
+  globe.arcsData(arcs)
+}
 
+
+ if (journeyActive) {
 
   animationId =
-  requestAnimationFrame(animate)
+    requestAnimationFrame(animate)
+
+}
 
 }
 
@@ -300,6 +320,8 @@ const targetPhase = setTimeout(() => {
   journeyProgress = 0
 
   journeyActive = true
+
+  animate() 
 
 }, 6000)
 
