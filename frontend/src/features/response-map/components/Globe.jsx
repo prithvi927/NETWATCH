@@ -107,6 +107,7 @@ let targetZoomTriggered = false
 let animationId
 let targetZoomOutTimeout = null
 let rotationResumeTimeout = null
+let targetZoomInTimeout = null
 function animate() {
 
   if (journeyActive) {
@@ -147,10 +148,36 @@ function animate() {
           lat: result.latitude,
           lng: result.longitude
         }
+      
       ])
 
-
       console.log("TARGET FOCUS START")
+
+      targetZoomInTimeout = setTimeout(() => {
+
+        globe.pointOfView(
+        {
+          lat: result.latitude,
+          lng: result.longitude,
+          altitude: 1.2
+        },
+        1200
+      )
+
+      targetZoomOutTimeout = setTimeout(() => {
+
+        globe.pointOfView(
+          {
+            lat: result.latitude,
+            lng: result.longitude,
+            altitude: 2.5
+          },
+          1200
+        )
+
+      }, 1500)
+
+    }, 3000)
       // globe.pointOfView(
       //   {
       //     lat: result.latitude,
@@ -330,7 +357,7 @@ rotationResumeTimeout = setTimeout(() => {
   globe.controls().autoRotate = true
   globe.controls().autoRotateSpeed = 1.2
 
-}, 12000)
+},  14000)
  
 
 return () => {
@@ -344,6 +371,8 @@ return () => {
   clearTimeout(usaZoomOut)
 
   clearTimeout(targetPhase)
+
+  clearTimeout(targetZoomInTimeout)
 
   clearTimeout(targetZoomOutTimeout)
 
