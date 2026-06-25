@@ -92,9 +92,12 @@ let targetZoomTriggered = false
   .ringAltitude(0.01)
 
   globe
-  .arcColor(() => "#00ffff")
-  .arcStroke(0.8)
-  .arcAltitude(0.25)
+  .arcColor(() => [
+  "rgba(130,180,255,0.42)",
+  "rgba(225,238,252,0.90)"
+  ])
+  .arcStroke(0.6)
+  .arcAltitude(0.22)
 
 
   // // globe.hexPolygonsData([])
