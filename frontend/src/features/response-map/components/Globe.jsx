@@ -93,11 +93,20 @@ let targetZoomTriggered = false
 
   globe
   .arcColor(() => [
-  "rgba(130,180,255,0.42)",
-  "rgba(225,238,252,0.90)"
+    "rgba(43, 143, 243, 1.0)" ,  // Faint cyan for the base residual line path
+    "rgba(255, 255, 255, 1.0)" // Intense solid white for the traveling packet tip
   ])
+  // .arcColor(() => [
+  // "rgba(130,180,255,0.42)",
+  // "rgba(225,238,252,0.90)"
+  // ])
   .arcStroke(0.6)
+  // .arcStroke(1.2)       
   .arcAltitude(0.22)
+
+  .arcDashLength(0.15)          // Length of your traveling packet
+  .arcDashGap(1)                // Leaves a massive gap so only 1 packet travels at a time
+  .arcDashAnimateTime(2000)     // Speed of the packet (2 seconds per cycle)
 
 
   // // globe.hexPolygonsData([])
@@ -137,7 +146,7 @@ function animate() {
 
       journeyActive = false
 
-      showArc = false
+      // showArc = false
 
       showTargetMarker = true
 
@@ -274,7 +283,7 @@ if (showArc) {
 
 
 console.count("ARC UPDATE")
-if (journeyActive || showArc) {
+if (journeyActive) {
   console.count("ARC UPDATE")
   globe.arcsData(arcs)
 }
