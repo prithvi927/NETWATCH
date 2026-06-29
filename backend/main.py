@@ -63,7 +63,6 @@ def analyze(data: WebsiteRequest):
             detail="Unable to determine server location for this target."
     )
 
-    start_time = time.time()
 
     try:
         with httpx.stream("GET", url, timeout=10) as r:
