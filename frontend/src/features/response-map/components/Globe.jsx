@@ -1,320 +1,435 @@
 import { useEffect, useRef } from "react"
-import createGlobe from "cobe"
+import GlobeGL from "globe.gl"
+import * as topojson from "topojson-client"
+import countries from "world-atlas/countries-110m.json"
 
 
 function Globe({ result }) {
 
   console.log("RESULT:", JSON.stringify(result))
 
-  const canvasRef = useRef(null)
+  const globeRef = useRef(null)
 
   useEffect(() => {
 
-    if (!result) return
-
-    console.log("EFFECT START")
-
-    if (!canvasRef.current) return
-    
-    canvasRef.current.style.transform = "scale(1)"
-
-    let phi = 4.7
-    console.log("PHI INIT", phi)
-    let zoom = 1
-    let targetZoom = 1
-    let targetPhi = 0
-    // let usaTargetPhi = 0.2
-    let shouldRotate = false
-    let showArc = false
-    let showUsaMarker = false
-    let showTargetMarker = false
-    // let arcTimerStarted = false
-    let journeyProgress = 0
-    let journeyActive = false
-
-    let targetZoomTriggered = false
-    let targetZoomOutTimeout = null
+  console.log("EFFECT STARTED")
 
 
-    let startPhi = 0
+  if (!globeRef.current || !result) return
 
-    const width = canvasRef.current.offsetWidth
-
-    const NETWATCH_LOCATION = [37.751, -97.822]
-
-    let currentArcLat = NETWATCH_LOCATION[0]
-    let currentArcLon = NETWATCH_LOCATION[1]
-
-    const globe = createGlobe(canvasRef.current, {
-      devicePixelRatio: 2,
-
-      width: width,
-      height: width,
-
-      phi: 4.7,
-      theta: 0.3,
-
-      dark: 1,
-
-      diffuse: 1.5,
-
-      mapSamples: 16000,
-      mapBrightness: 8,
-
-      baseColor: [0.08, 0.12, 0.18],
-      markerColor: [0, 1, 1],
-      glowColor: [0, 0.35, 0.7],
-      arcColor: [0, 1, 1],
-      arcWidth: 0.8,
-      arcHeight: 0.5,
-      markerElevation: 0.02,
-
-
-
-    markers: [
-      ...(showUsaMarker
-        ? [
-            {
-              location: NETWATCH_LOCATION,
-              size: 0.05
-            }
-          ]
-        : []),
-
-      ...(showTargetMarker &&
-      result?.latitude &&
-      result?.longitude
-        ? [
-            {
-              location: [
-              result.latitude,
-              result.longitude
-            ],
-            size: 0.06
-            }
-          ]
-        : [])
-    ],
-
-    arcs: [],
-
-    opacity: 0.7
-
-    })
+  const globe = GlobeGL()(globeRef.current)
 
   
 
-  let animationId
+  console.log("GLOBE CREATED")
 
-  function animate() {
+  globe.pointOfView(
+  {
+    lat: 20,
+    lng: 0,
+    altitude: 2.5
+  },
+  0
+)
 
-  if (shouldRotate) {
+const NETWATCH_LOCATION = {
+  lat: 37.751,
+  lng: -97.822
+}
 
-    if (Math.abs(targetPhi - phi) > 0.01) {
+let showUsaMarker = false
+let showTargetMarker = false
+let showArc = false
 
-      phi += (targetPhi - phi) * 0.05
+let currentLat = NETWATCH_LOCATION.lat
+let currentLng = NETWATCH_LOCATION.lng
 
-    } else {
+let journeyProgress = 0
+let journeyActive = false
 
-      shouldRotate = false
+let targetZoomTriggered = false
 
-    }
+  // globe.camera().position.z = 250
+  globe.controls().autoRotate = true
+  globe.controls().autoRotateSpeed = 1.2
 
-  } else {
+  globe.globeImageUrl(null)
 
-    phi += 0.003
+  globe.showAtmosphere(true)
 
-  }
+  globe.atmosphereColor("#0088ff")
+  globe.atmosphereAltitude(0.12)
+
+  const material = globe.globeMaterial()
+
+  material.color.set("#02060d")
+  material.emissive.set("#061a3a")
+  material.emissiveIntensity = 0.25
+
+  const landPolygons =
+  topojson.feature(
+    countries,
+    countries.objects.countries
+  ).features
 
 
-  if (Math.abs(targetZoom - zoom) > 0.01) {
+  globe
+  .polygonsData(landPolygons)
 
-  zoom += (targetZoom - zoom) * 0.05
+  .polygonCapColor(() => "#143d82")
 
-  canvasRef.current.style.transform = `scale(${zoom})`
+  .polygonSideColor(() => "#0a244d")
 
-  }
+  .polygonStrokeColor(() => "#2d7ce8")
 
+  .polygonAltitude(0.003)
+
+  globe
+  .ringColor(() => "#00ffff")
+  .ringMaxRadius(2)
+  .ringPropagationSpeed(1)
+  .ringRepeatPeriod(1200)
+  .ringAltitude(0.01)
+
+  globe
+  .arcColor(() => [
+    "rgba(43, 143, 243, 1.0)" ,  // Faint cyan for the base residual line path
+    "rgba(255, 255, 255, 1.0)" // Intense solid white for the traveling packet tip
+  ])
+  // .arcColor(() => [
+  // "rgba(130,180,255,0.42)",
+  // "rgba(225,238,252,0.90)"
+  // ])
+  .arcStroke(0.6)
+  // .arcStroke(1.2)       
+  .arcAltitude(0.22)
+
+  .arcDashLength(0.15)          // Length of your traveling packet
+  .arcDashGap(1)                // Leaves a massive gap so only 1 packet travels at a time
+  .arcDashAnimateTime(2000)     // Speed of the packet (2 seconds per cycle)
+
+
+  // // globe.hexPolygonsData([])
+  // // globe
+  // //   .hexPolygonsData(landPolygons)
+  // //   .hexPolygonResolution(4)
+  // //   .hexPolygonMargin(0.22)
+  // //   .hexPolygonColor(() => "#6fb6ff")
+
+let animationId
+let targetZoomOutTimeout = null
+let rotationResumeTimeout = null
+let targetZoomInTimeout = null
+function animate() {
 
   if (journeyActive) {
 
     journeyProgress += 0.01
 
-  if (journeyProgress >= 1) {
+    if (
+      journeyProgress >= 1 &&
+      !targetZoomTriggered
+    ) {
 
-  journeyProgress = 1
-  journeyActive = false
+      targetZoomTriggered = true
 
-  showTargetMarker = true
+      journeyProgress = 1
 
-  if (!targetZoomTriggered) {
+      globe.arcsData([
+        {
+          startLat: NETWATCH_LOCATION.lat,
+          startLng: NETWATCH_LOCATION.lng,
+          endLat: result.latitude,
+          endLng: result.longitude
+        }
+      ])
 
-    targetZoomTriggered = true
+      journeyActive = false
 
-    targetZoom = 2.5
+      // showArc = false
 
-    targetZoomOutTimeout = setTimeout(() => {
+      showTargetMarker = true
 
-      targetZoom = 1
 
-    }, 1000)
+      globe.ringsData([
+        {
+          lat: NETWATCH_LOCATION.lat,
+          lng: NETWATCH_LOCATION.lng
+        },
+        {
+          lat: result.latitude,
+          lng: result.longitude
+        }
+      
+      ])
 
+      console.log("TARGET FOCUS START")
+
+      targetZoomInTimeout = setTimeout(() => {
+
+        globe.pointOfView(
+        {
+          lat: result.latitude,
+          lng: result.longitude,
+          altitude: 1.2
+        },
+        1200
+      )
+
+      targetZoomOutTimeout = setTimeout(() => {
+
+        globe.pointOfView(
+          {
+            lat: result.latitude,
+            lng: result.longitude,
+            altitude: 2.5
+          },
+          1200
+        )
+
+      }, 1500)
+
+    }, 3000)
+      // globe.pointOfView(
+      //   {
+      //     lat: result.latitude,
+      //     lng: result.longitude,
+      //     altitude: 1.2
+      //   },
+      //   1500
+      // )
+
+//       targetZoomOutTimeout = setTimeout(() => {
+
+//   globe.pointOfView(
+//     {
+//       lat: result.latitude,
+//       lng: result.longitude,
+//       altitude: 2.5
+//     },
+//     1500
+//   )
+
+ 
+// }, 1000)
+    }
+
+    currentLat =
+      NETWATCH_LOCATION.lat +
+      (
+        result.latitude -
+        NETWATCH_LOCATION.lat
+      ) *
+      journeyProgress
+
+    currentLng =
+      NETWATCH_LOCATION.lng +
+      (
+        result.longitude -
+        NETWATCH_LOCATION.lng
+      ) *
+      journeyProgress
   }
 
+
+// const markers = []
+
+// if (showUsaMarker) {
+
+//   markers.push({
+//     lat: NETWATCH_LOCATION.lat,
+//     lng: NETWATCH_LOCATION.lng,
+//     size: 1
+//   })
+// }
+
+// if (showTargetMarker) {
+
+//   markers.push({
+//     lat: result.latitude,
+//     lng: result.longitude,
+//     size: 1
+//   })
+// }
+
+// // globe
+// //   .pointsData(markers)
+// //   .pointLat(d => d.lat)
+// //   .pointLng(d => d.lng)
+// //   .pointAltitude(0.08)
+// //   .pointRadius(d => d.size)
+// //   .pointColor(() => "#00ffff")
+
+
+  const arcs = []
+
+if (showArc) {
+
+  arcs.push({
+
+    startLat:
+      NETWATCH_LOCATION.lat,
+
+    startLng:
+      NETWATCH_LOCATION.lng,
+
+    endLat:
+      currentLat,
+
+    endLng:
+      currentLng
+  })
 }
-  phi =
-    startPhi +
-    (targetPhi - startPhi) * journeyProgress
 
-  currentArcLat =
-    NETWATCH_LOCATION[0] +
-    (result.latitude - NETWATCH_LOCATION[0]) *
-      journeyProgress
 
-  currentArcLon =
-    NETWATCH_LOCATION[1] +
-    (result.longitude - NETWATCH_LOCATION[1]) *
-      journeyProgress
+console.count("ARC UPDATE")
+if (journeyActive) {
+  console.count("ARC UPDATE")
+  globe.arcsData(arcs)
 }
 
-  globe.update({
-  phi,
-  
-  markers: [
-      ...(showUsaMarker
-        ? [
-            {
-              location: NETWATCH_LOCATION,
-              size: 0.05
-            }
-          ]
-        : []),
 
-        ...(showTargetMarker &&
-        result?.latitude &&
-        result?.longitude
-          ? [
-              {
-                  location: [
-                  result.latitude,
-                  result.longitude
-                ],
-                size: 0.06
-              }
-            ]
-          : [])
-        ],
+ if (journeyActive) {
 
+  animationId =
+    requestAnimationFrame(animate)
 
-  arcs: showArc
-  ? [
-      {
-        from: NETWATCH_LOCATION,
-        to: [
-          currentArcLat,
-          currentArcLon
-        ]
-      }
-    ]
-  : []
-})
-
-animationId = requestAnimationFrame(animate)
+}
 
 }
 
 animate()
 
+const usaFocus = setTimeout(() => {
+
+  globe.controls().autoRotate = false
+
+  globe.pointOfView(
+    {
+      lat: 37.751,
+      lng: -97.822,
+      altitude: 1.2
+    },
+    1500
+  )
+
+}, 2000)
 
 const usaPhase = setTimeout(() => {
 
-  console.log("USA PHASE START")
-  console.log("PHI DURING USA", phi)
-
-  targetPhi = 0.2
-  shouldRotate = true
-
-
-}, 2000)
-
-
-const usaZoomPhase = setTimeout(() => {
-
-  targetZoom = 2.5
-
-}, 2000)
-
-const markerPhase = setTimeout(() => {
-
   showUsaMarker = true
+
+   globe.ringsData([
+  {
+    lat: NETWATCH_LOCATION.lat,
+    lng: NETWATCH_LOCATION.lng
+  }
+])
+
 
 }, 3000)
 
-// const arcPhase = setTimeout(() => {
 
-//   showArc = true
+const usaZoomOut = setTimeout(() => {
 
-// }, 4000)
+  globe.pointOfView(
+    {
+      lat: 37.751,
+      lng: -97.822,
+      altitude: 2.5
+    },
+    1500
+  )
 
+}, 4000)
 
-const usaZoomOutPhase = setTimeout(() => {
-
-  targetZoom = 1
-
-}, 5000)
-
-const targetwebPhase = setTimeout(() => {
+const targetPhase = setTimeout(() => {
 
   showArc = true
 
-  const longitude = result.longitude
-
-  targetPhi = -0.2 + ((-longitude - 77.49) * Math.PI) / 180
-
-  startPhi = phi
+  globe.pointOfView(
+    {
+      lat: 20,
+      lng: result.longitude,
+      altitude: 2.5
+    },
+    5000
+  )
 
   journeyProgress = 0
+
   journeyActive = true
+
+  animate() 
 
 }, 6000)
 
+rotationResumeTimeout = setTimeout(() => {
 
-// const targetwebZoomPhase = setTimeout(() => {
+  globe.controls().autoRotate = true
+  globe.controls().autoRotateSpeed = 1.2
 
-//   targetZoom = 2.5
-
-// }, 7000)
-
-// const targetwebZoomOutPhase = setTimeout(() => {
-
-//   targetZoom = 1
-
-// }, 8000)
-
+},  14000)
+ 
 
 return () => {
+
+   console.log("EFFECT CLEANUP")
+
+  clearTimeout(usaFocus)
+
   clearTimeout(usaPhase)
-  // clearTimeout(arcPhase)
-  clearTimeout(targetwebPhase)
-  clearTimeout(markerPhase)
-  clearTimeout(usaZoomPhase)
-  clearTimeout(usaZoomOutPhase)
+
+  clearTimeout(usaZoomOut)
+
+  clearTimeout(targetPhase)
+
+  clearTimeout(targetZoomInTimeout)
+
   clearTimeout(targetZoomOutTimeout)
+
+  clearTimeout(rotationResumeTimeout)
+
   cancelAnimationFrame(animationId)
 
-  console.log("EFFECT CLEANUP")
-  globe.destroy()
-}
-  }, [result])
+
+  // 2. Unbind data layers explicitly to drop geographic VRAM allocation
+      if (globe) {
+        if (globe.controls() && typeof globe.controls().dispose === "function") {
+          globe.controls().dispose()
+        }
+
+        globe
+          .polygonsData([])
+          .arcsData([])
+          .ringsData([])
+          .pointsData([])
+          .labelsData([])
+          .pathsData([])
+          .hexBinPointsData([])
+          .customLayerData([])
+
+        // 3. Command Three.js to destroy contexts, scenes, textures, & event listeners
+        if (typeof globe._destructor === "function") {
+          globe._destructor()
+        }
+      }
+
+      // 4. Force empty the DOM wrapper element to wipe residual canvas frames
+      if (globeRef.current) {
+        globeRef.current.innerHTML = ""
+      }
+    }
+
+}, [result])
 
   return (
-  <canvas
-    ref={canvasRef}
+  <div
+    ref={globeRef}
     style={{
       width: "600px",
       height: "600px",
-      maxWidth: "100%",
-      transformOrigin: "center center"
+      background: "#000000"
     }}
   />
 )
