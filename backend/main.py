@@ -41,6 +41,7 @@ def analyze(data: WebsiteRequest):
     domain = parsed_url.netloc.lower()
 
 
+    start_time = time.time()
     
     try:
         ip_address = socket.gethostbyname(domain)
