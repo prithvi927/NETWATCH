@@ -87,6 +87,41 @@ def analyze(data: WebsiteRequest):
             status_code=408,
             detail=f"TCP connection failed: {e}"
     )
+        
+    tls_handshake_ms = None
+
+    if parsed_url.scheme == "https":
+
+        try:
+            context = ssl.create_default_context()
+
+            tls_socket = socket.socket(
+                socket.AF_INET,
+                socket.SOCK_STREAM
+            )
+            tls_socket.settimeout(10)
+
+            tls_socket.connect((ip_address, 443))
+
+            tls_start = perf_counter()
+
+            secure_socket = context.wrap_socket(
+                tls_socket,
+                server_hostname=domain
+            )
+
+            tls_handshake_ms = round(
+                (perf_counter() - tls_start) * 1000,
+                2
+            )
+
+            secure_socket.close()
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=408,
+                detail=f"TLS handshake failed: {e}"
+        )
 
     try:
         with httpx.stream("GET", url, timeout=10) as r:
@@ -134,6 +169,7 @@ def analyze(data: WebsiteRequest):
         "latitude": response.location.latitude,
         "longitude": response.location.longitude,
         "tcp_connect_ms": tcp_connect_ms,
+        "tls_handshake_ms": tls_handshake_ms,
         "response_time_ms": response_time_ms,
         "grade": grade,
         "status": status
