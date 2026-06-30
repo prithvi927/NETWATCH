@@ -6,6 +6,8 @@ import httpx
 import time
 from urllib.parse import urlparse
 from fastapi.middleware.cors import CORSMiddleware
+import ssl
+from time import perf_counter
 
 app = FastAPI()
 
@@ -62,7 +64,29 @@ def analyze(data: WebsiteRequest):
             status_code=400,
             detail="Unable to determine server location for this target."
     )
+        
+    port = 443 if parsed_url.scheme == "https" else 80
 
+    try:
+        tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tcp_socket.settimeout(10)
+
+        tcp_start = perf_counter()
+
+        tcp_socket.connect((ip_address, port))
+
+        tcp_connect_ms = round(
+            (perf_counter() - tcp_start) * 1000,
+            2
+        )
+
+        tcp_socket.close()
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=408,
+            detail=f"TCP connection failed: {e}"
+    )
 
     try:
         with httpx.stream("GET", url, timeout=10) as r:
@@ -109,6 +133,7 @@ def analyze(data: WebsiteRequest):
         "city": response.city.name,
         "latitude": response.location.latitude,
         "longitude": response.location.longitude,
+        "tcp_connect_ms": tcp_connect_ms,
         "response_time_ms": response_time_ms,
         "grade": grade,
         "status": status
