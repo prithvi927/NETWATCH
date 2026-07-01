@@ -2,8 +2,6 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import socket
 import geoip2.database
-import httpx
-import time
 from urllib.parse import urlparse
 from fastapi.middleware.cors import CORSMiddleware
 import ssl
@@ -41,12 +39,18 @@ def analyze(data: WebsiteRequest):
     parsed_url = urlparse(url)
 
     domain = parsed_url.netloc.lower()
+    
 
-
-    start_time = perf_counter()
+    start_time = perf_counter() 
+    dns_start = perf_counter()
     
     try:
         ip_address = socket.gethostbyname(domain)
+        
+        dns_lookup_ms = round(
+            (perf_counter() - dns_start) * 1000,
+            2
+        )
 
     except socket.gaierror:
         raise HTTPException(
@@ -155,11 +159,19 @@ def analyze(data: WebsiteRequest):
                 detail="Server closed connection before sending first byte."
         )
 
-        response_time_ms = round(
+        TTFB_ms = round(
             (
                 (perf_counter() - start_time)
                 * 1000
             ),
+            2
+        )
+        
+        http_server_first_byte_ms = round(
+            TTFB_ms
+            - dns_lookup_ms
+            - tcp_connect_ms
+            - (tls_handshake_ms or 0),
             2
         )
 
@@ -172,23 +184,23 @@ def analyze(data: WebsiteRequest):
             detail=str(e)
         )
     
-    if response_time_ms < 200:
+    if TTFB_ms < 200:
         grade = "A+"
         status = "Excellent"
 
-    elif response_time_ms < 500:
+    elif TTFB_ms < 500:
         grade = "A"
         status = "Very Fast"
 
-    elif response_time_ms < 800:
+    elif TTFB_ms < 800:
         grade = "B"
         status = "Good"
 
-    elif response_time_ms < 1200:
+    elif TTFB_ms < 1200:
         grade = "C"
         status = "Fair"
 
-    elif response_time_ms < 2000:
+    elif TTFB_ms < 2000:
         grade = "D"
         status = "Slow"
 
@@ -203,9 +215,11 @@ def analyze(data: WebsiteRequest):
         "city": response.city.name,
         "latitude": response.location.latitude,
         "longitude": response.location.longitude,
+        "dns_lookup_ms": dns_lookup_ms,
         "tcp_connect_ms": tcp_connect_ms,
         "tls_handshake_ms": tls_handshake_ms,
-        "response_time_ms": response_time_ms,
+        "http_server_first_byte_ms": http_server_first_byte_ms,
+        "TTFB_ms": TTFB_ms,
         "grade": grade,
         "status": status
     }
