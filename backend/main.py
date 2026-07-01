@@ -43,7 +43,7 @@ def analyze(data: WebsiteRequest):
     domain = parsed_url.netloc.lower()
 
 
-    start_time = time.time()
+    start_time = perf_counter()
     
     try:
         ip_address = socket.gethostbyname(domain)
@@ -64,49 +64,49 @@ def analyze(data: WebsiteRequest):
             status_code=400,
             detail="Unable to determine server location for this target."
     )
-        
+    
+    
     port = 443 if parsed_url.scheme == "https" else 80
 
     try:
-        tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        tcp_socket.settimeout(10)
+
+    # -------------------------
+    # TCP CONNECTION
+    # -------------------------
+
+        sock = socket.socket(
+            socket.AF_INET,
+            socket.SOCK_STREAM
+        )
+
+        sock.settimeout(10)
 
         tcp_start = perf_counter()
 
-        tcp_socket.connect((ip_address, port))
+        sock.connect((ip_address, port))
 
         tcp_connect_ms = round(
             (perf_counter() - tcp_start) * 1000,
             2
         )
 
-        tcp_socket.close()
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=408,
-            detail=f"TCP connection failed: {e}"
-    )
-        
-    tls_handshake_ms = None
+    # -------------------------
+    # TLS HANDSHAKE
+    # -------------------------
 
-    if parsed_url.scheme == "https":
+        tls_handshake_ms = None
 
-        try:
+        connection = sock
+
+        if parsed_url.scheme == "https":
+
             context = ssl.create_default_context()
-
-            tls_socket = socket.socket(
-                socket.AF_INET,
-                socket.SOCK_STREAM
-            )
-            tls_socket.settimeout(10)
-
-            tls_socket.connect((ip_address, 443))
 
             tls_start = perf_counter()
 
-            secure_socket = context.wrap_socket(
-                tls_socket,
+            connection = context.wrap_socket(                                                           
+                sock,
                 server_hostname=domain
             )
 
@@ -115,28 +115,63 @@ def analyze(data: WebsiteRequest):
                 2
             )
 
-            secure_socket.close()
 
-        except Exception as e:
-            raise HTTPException(
-                status_code=408,
-                detail=f"TLS handshake failed: {e}"
+    # -------------------------
+    # HTTP REQUEST
+    # -------------------------
+
+        path = parsed_url.path or "/"
+
+        if parsed_url.query:
+            path += "?" + parsed_url.query
+
+        request = (
+            f"GET {path} HTTP/1.1\r\n"
+            f"Host: {domain}\r\n"
+            "Connection: close\r\n"
+            "User-Agent: NetWatch/1.0\r\n"
+            "Accept: */*\r\n"
+            "Accept-Encoding: identity\r\n"
+            "Connection: close\r\n"
+            "\r\n"
         )
 
-    try:
-        with httpx.stream("GET", url, timeout=10) as r:
-            next(r.iter_bytes())
+
+    # -------------------------
+    # TTFB
+    # -------------------------
+
+    
+
+        connection.sendall(
+            request.encode("utf-8")
+    )
+
+        first_byte = connection.recv(1)
+        
+        if not first_byte:
+            raise HTTPException(
+                status_code=408,
+                detail="Server closed connection before sending first byte."
+        )
+
+        response_time_ms = round(
+            (
+                (perf_counter() - start_time)
+                * 1000
+            ),
+            2
+        )
+
+        connection.close()
 
     except Exception as e:
-        print("HTTPX ERROR:", repr(e))
 
         raise HTTPException(
             status_code=408,
-            detail=repr(e)
+            detail=str(e)
         )
     
-    response_time_ms = round((time.time() - start_time) * 1000, 2)
-
     if response_time_ms < 200:
         grade = "A+"
         status = "Excellent"
